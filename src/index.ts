@@ -133,6 +133,9 @@ export class Statefy<T> {
 		return {
 			clear: () => {
 				this.changeCallbacks.delete(callback)
+			},
+			call: () => {
+				callback(this.get(), this.get())
 			}
 		}
 	}
