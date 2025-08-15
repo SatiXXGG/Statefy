@@ -224,4 +224,27 @@ export class Statefy<T extends AttributeValue> {
 			}
 		}
 	}
+
+	/**
+	 * The opposite of createCollider
+	 * @param collideWith
+	 * @returns
+	 */
+
+	createPass(collideWith: T[]): Collider<T> {
+		const listHasState = (state: T) => this.listHasState(state)
+		const get = () => this.get()
+		return {
+			checkState: function()  {
+				const who = get()
+				return  collideWith.includes(who)
+			},
+			checkList: function() {
+				return collideWith.some(who => listHasState(who))
+			},
+			check: function() {
+				return this.checkState() && this.checkList()
+			}
+		}
+	}
 }
