@@ -8,7 +8,7 @@ interface StateInfo<T> {
 	lifetime: number
 }
 
-export class Statefy<T> {
+export class Statefy<T extends AttributeValue> {
 	private currentState: T
 	private changeCallbacks = new Set<StateCallback<T>>()
 	private addCallbacks = new Set<StateListCallback<T>>()
@@ -43,13 +43,14 @@ export class Statefy<T> {
 	 */
 	add(state: T, lifeTime: number) {
 		const found = this.stateList.find(s => s.state === state)
+		const tc = tick()
 		if (found && this.listStateRewrite) {
-			found.createdAt = tick()
+			found.createdAt = tc
 			found.lifetime = lifeTime
 		} else {
 			const info: StateInfo<T> = {
 				state,
-				createdAt: tick(),
+				createdAt: tc,
 				lifetime: lifeTime
 			}
 			this.stateList.push(info)
@@ -68,16 +69,29 @@ export class Statefy<T> {
 		this.stateList = this.stateList.filter(s => s.state !== state)
 		this.removeCallbacks.forEach(callback => task.spawn(() => callback(state)))
 	}
+	/**
+	 * Cleans all the listeners of the callbacks
+	 */
+
+	clearAllListeners() {
+		this.changeCallbacks.clear()
+		this.addCallbacks.clear()
+		this.removeCallbacks.clear()
+	}
 
 	/**
 	 * Returns the list of states
 	 * @returns
 	 */
+
+
 	getListStates() {
 		const grabbedStates = new Set<T>()
 		this.stateList.forEach(s => {
 			if (tick() - s.createdAt <= s.lifetime) {
 				grabbedStates.add(s.state)
+			} else {
+				this.remove(s.state)
 			}
 		})
 		return grabbedStates
@@ -103,7 +117,7 @@ export class Statefy<T> {
 		if (!this.override && this.currentState === state) return
 		const oldState = this.get()
 		this.currentState = state
-		this.changeCallbacks.forEach(callback => callback(state, oldState))
+		this.changeCallbacks.forEach(callback => task.spawn(() => callback(state, oldState)))
 	}
 
 	/**
@@ -167,4 +181,18 @@ export class Statefy<T> {
 			}
 		}
 	}
+
+	bindInstance(instance: Instance) {
+		const onChange = this.onChange((newState, oldState) => {
+			instance.SetAttribute("state", newState)
+			instance.SetAttribute("oldState", oldState)
+		})
+
+		return {
+			clear: () => {
+				onChange.clear()
+			}
+		}
+	}
+
 }
