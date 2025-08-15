@@ -209,13 +209,15 @@ export class Statefy<T extends AttributeValue> {
 	 * @returns
 	 */
 	createCollider(collideWith: T[]): Collider<T> {
+		const listHasState = this.listHasState
+		const get = this.get
 		return {
-			checkState: () => {
-				const who = this.get()
+			checkState: function()  {
+				const who = get()
 				return  !collideWith.includes(who)
 			},
-			checkList: () => {
-				return !collideWith.some(who => this.listHasState(who))
+			checkList: function() {
+				return !collideWith.some(who => listHasState(who))
 			},
 			check: function() {
 				return this.checkState() && this.checkList()
