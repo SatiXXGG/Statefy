@@ -8,6 +8,13 @@ interface StateInfo<T> {
 	lifetime: number
 }
 
+interface Collider<T> {
+	checkState(): boolean
+	checkList(): boolean
+	check(): boolean
+}
+
+
 export class Statefy<T extends AttributeValue> {
 	private currentState: T
 	private changeCallbacks = new Set<StateCallback<T>>()
@@ -54,7 +61,7 @@ export class Statefy<T extends AttributeValue> {
 				lifetime: lifeTime
 			}
 			this.stateList.push(info)
-			this.addCallbacks.forEach(callback => task.spawn(() => callback(state)))
+			this.addCallbacks.forEach(callback => task.spawn(() => callback(state as T)))
 		}
 	}
 
@@ -195,4 +202,24 @@ export class Statefy<T extends AttributeValue> {
 		}
 	}
 
+	/**
+	 * Creates a collider for the states
+	 * @param accepted
+	 * @param denied
+	 * @returns
+	 */
+	createCollider(collideWith: T[]): Collider<T> {
+		return {
+			checkState: () => {
+				const who = this.get()
+				return  !collideWith.includes(who)
+			},
+			checkList: () => {
+				return !collideWith.some(who => this.listHasState(who))
+			},
+			check: function() {
+				return this.checkState() && this.checkList()
+			}
+		}
+	}
 }
