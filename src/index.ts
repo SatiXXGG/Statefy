@@ -209,8 +209,8 @@ export class Statefy<T extends AttributeValue> {
 	 * @returns
 	 */
 	createCollider(collideWith: T[]): Collider<T> {
-		const listHasState = this.listHasState
-		const get = this.get
+		const listHasState = (state: T) => this.listHasState(state)
+		const get = () => this.get()
 		return {
 			checkState: function()  {
 				const who = get()
