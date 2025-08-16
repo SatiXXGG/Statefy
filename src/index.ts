@@ -11,7 +11,7 @@ interface StateInfo<T> {
 interface Collider<T> {
 	checkState(): boolean
 	checkList(): boolean
-	check(): boolean
+	check(both: boolean): boolean
 }
 
 
@@ -219,8 +219,12 @@ export class Statefy<T extends AttributeValue> {
 			checkList: function() {
 				return !collideWith.some(who => listHasState(who))
 			},
-			check: function() {
-				return this.checkState() && this.checkList()
+			check: function(both: boolean = false) {
+				if (!both) {
+					return this.checkState() || this.checkList()
+				} else {
+					return this.checkState() && this.checkList()
+				}
 			}
 		}
 	}
@@ -242,8 +246,12 @@ export class Statefy<T extends AttributeValue> {
 			checkList: function() {
 				return collideWith.some(who => listHasState(who))
 			},
-			check: function() {
-				return this.checkState() && this.checkList()
+			check: function(both: boolean = false) {
+				if (!both) {
+					return this.checkState() || this.checkList()
+				} else {
+					return this.checkState() && this.checkList()
+				}
 			}
 		}
 	}
